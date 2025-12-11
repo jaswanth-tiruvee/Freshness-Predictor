@@ -9,8 +9,10 @@ import io
 import os
 
 # Configuration
-API_URL = os.getenv("API_URL", "http://localhost:8000")
-PREDICT_ENDPOINT = f"{API_URL}/predict"
+# For Streamlit Cloud, API_URL must be set as an environment variable
+# pointing to your deployed backend (e.g., https://your-app.onrender.com)
+API_URL = os.getenv("API_URL", "")
+PREDICT_ENDPOINT = f"{API_URL}/predict" if API_URL else None
 
 # Page configuration
 st.set_page_config(
@@ -62,22 +64,42 @@ def main():
     # Sidebar with API status
     with st.sidebar:
         st.header("🔧 Configuration")
-        st.write(f"**API URL:** {API_URL}")
         
-        # Check API health
-        try:
-            response = requests.get(f"{API_URL}/health", timeout=5)
-            if response.status_code == 200:
-                health_data = response.json()
-                st.success("✅ API is healthy")
-                st.write(f"**Model loaded:** {health_data.get('model_loaded', False)}")
-                if health_data.get('demo_mode'):
-                    st.info("⚠️ Running in demo mode")
-            else:
-                st.warning("⚠️ API returned unexpected status")
-        except requests.exceptions.RequestException as e:
-            st.error(f"❌ Cannot connect to API: {str(e)}")
-            st.info("Make sure your FastAPI backend is running!")
+        if not API_URL:
+            st.error("⚠️ API_URL not configured")
+            st.markdown("""
+            **To use this app, you need to:**
+            
+            1. Deploy your FastAPI backend to Render or Railway
+            2. Set the `API_URL` environment variable in Streamlit Cloud:
+               - Go to app settings → Secrets
+               - Add: `API_URL = https://your-backend-url.onrender.com`
+            3. Redeploy the app
+            
+            **For local testing:**
+            ```bash
+            export API_URL=http://localhost:8001
+            streamlit run streamlit_app.py
+            ```
+            """)
+        else:
+            st.write(f"**API URL:** {API_URL}")
+            
+            # Check API health
+            try:
+                response = requests.get(f"{API_URL}/health", timeout=5)
+                if response.status_code == 200:
+                    health_data = response.json()
+                    st.success("✅ API is healthy")
+                    st.write(f"**Model loaded:** {health_data.get('model_loaded', False)}")
+                    if health_data.get('demo_mode'):
+                        st.info("⚠️ Running in demo mode")
+                else:
+                    st.warning("⚠️ API returned unexpected status")
+            except requests.exceptions.RequestException as e:
+                st.error(f"❌ Cannot connect to API")
+                st.code(str(e)[:100] + "..." if len(str(e)) > 100 else str(e))
+                st.info("Make sure your FastAPI backend is deployed and accessible!")
     
     # File uploader
     uploaded_file = st.file_uploader(
@@ -85,6 +107,11 @@ def main():
         type=['jpg', 'jpeg', 'png'],
         help="Upload an image of a perishable item (e.g., banana)"
     )
+    
+    if not API_URL:
+        st.warning("⚠️ Please configure the API_URL environment variable to use this app.")
+        st.info("See the sidebar for instructions on how to set it up.")
+        return
     
     if uploaded_file is not None:
         # Display uploaded image
