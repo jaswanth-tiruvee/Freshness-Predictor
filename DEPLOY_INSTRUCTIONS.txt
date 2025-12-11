@@ -1,0 +1,53 @@
+═══════════════════════════════════════════════════════
+  STREAMLIT CLOUD DEPLOYMENT INSTRUCTIONS
+═══════════════════════════════════════════════════════
+
+STEP 1: Go to Streamlit Cloud
+   → https://streamlit.io/cloud
+   → Sign in with your GitHub account
+
+STEP 2: Create New App
+   → Click "New app" button
+   → Select GitHub account
+   → Repository: jaswanth-tiruvee/Freshness-Predictor
+   → Branch: main
+   → Main file path: streamlit_app.py
+
+STEP 3: Configure Environment Variable
+   → Click "Advanced settings" (⚙️ icon)
+   → Go to "Secrets" tab
+   → Add this:
+   
+   API_URL = https://your-backend-url.onrender.com
+   
+   (Replace with your actual backend URL after deploying backend)
+
+STEP 4: Deploy
+   → Click "Deploy" button
+   → Wait 2-3 minutes
+   → Your app will be live!
+
+═══════════════════════════════════════════════════════
+  IMPORTANT: Backend Must Be Deployed First!
+═══════════════════════════════════════════════════════
+
+Before the Streamlit app can work, you need to deploy the 
+FastAPI backend to Render or Railway.
+
+BACKEND DEPLOYMENT (Render - Free):
+1. Go to https://render.com
+2. Sign up/login with GitHub
+3. Click "New +" → "Web Service"
+4. Connect repository: jaswanth-tiruvee/Freshness-Predictor
+5. Configure:
+   - Name: freshness-predictor-api
+   - Root Directory: backend
+   - Build Command: pip install -r requirements.txt
+   - Start Command: uvicorn main:app --host 0.0.0.0 --port $PORT
+6. Deploy and copy the URL
+7. Use this URL in Streamlit Cloud's API_URL secret
+
+═══════════════════════════════════════════════════════
+
+Repository: https://github.com/jaswanth-tiruvee/Freshness-Predictor.git
+
