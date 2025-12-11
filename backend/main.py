@@ -6,14 +6,21 @@ High-performance API endpoint for serving the trained model
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-import tensorflow as tf
-from tensorflow import keras
 import numpy as np
 from PIL import Image
 import io
 import os
 import hashlib
 from contextlib import asynccontextmanager
+
+# Try to import TensorFlow - optional for demo mode
+try:
+    import tensorflow as tf
+    from tensorflow import keras
+    TENSORFLOW_AVAILABLE = True
+except ImportError:
+    TENSORFLOW_AVAILABLE = False
+    keras = None
 
 # Global model variable
 model = None
@@ -35,7 +42,12 @@ async def lifespan(app: FastAPI):
     # Load model on startup
     print(f"Loading model from {MODEL_PATH}...")
     try:
-        if not os.path.exists(MODEL_PATH):
+        if not TENSORFLOW_AVAILABLE:
+            print("⚠️  TensorFlow not available")
+            print("🔄 Running in DEMO MODE - returning mock predictions")
+            print("   Install TensorFlow to use trained models")
+            demo_mode = True
+        elif not os.path.exists(MODEL_PATH):
             print(f"⚠️  Model file not found at {MODEL_PATH}")
             print("🔄 Running in DEMO MODE - returning mock predictions")
             print("   To use real predictions, train a model and place model.h5 in the backend directory")
