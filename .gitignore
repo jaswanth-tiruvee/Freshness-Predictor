@@ -36,6 +36,7 @@ models/
 # Jupyter Notebook
 .ipynb_checkpoints
 *.ipynb
+!model_training/train_model.ipynb
 
 # IDE
 .vscode/
