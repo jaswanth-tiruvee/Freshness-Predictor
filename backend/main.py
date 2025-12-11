@@ -77,6 +77,9 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+# API Key for authentication (set via environment variable)
+API_KEY = os.getenv("API_KEY", "")
+
 # CORS middleware to allow requests from Streamlit frontend
 app.add_middleware(
     CORSMiddleware,
@@ -85,6 +88,29 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# API Key validation middleware
+from fastapi import Request, status
+from fastapi.responses import JSONResponse
+
+@app.middleware("http")
+async def validate_api_key(request: Request, call_next):
+    # Skip authentication for health checks
+    if request.url.path in ["/", "/health", "/docs", "/openapi.json"]:
+        response = await call_next(request)
+        return response
+    
+    # Check API key if it's configured
+    if API_KEY:
+        api_key_header = request.headers.get("X-API-Key")
+        if api_key_header != API_KEY:
+            return JSONResponse(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                content={"detail": "Invalid or missing API key"}
+            )
+    
+    response = await call_next(request)
+    return response
 
 def preprocess_image(image: Image.Image) -> np.ndarray:
     """

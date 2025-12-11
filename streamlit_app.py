@@ -12,6 +12,7 @@ import os
 # For Streamlit Cloud, API_URL must be set as an environment variable
 # pointing to your deployed backend (e.g., https://your-app.onrender.com)
 API_URL = os.getenv("API_URL", "")
+API_KEY = os.getenv("API_KEY", "")  # Optional: API key for authentication
 PREDICT_ENDPOINT = f"{API_URL}/predict" if API_URL else None
 
 # Page configuration
@@ -84,10 +85,17 @@ def main():
             """)
         else:
             st.write(f"**API URL:** {API_URL}")
+            if API_KEY:
+                st.write("🔐 **API Key:** Configured")
+            else:
+                st.info("💡 Tip: Set API_KEY in secrets for added security")
             
             # Check API health
             try:
-                response = requests.get(f"{API_URL}/health", timeout=5)
+                headers = {}
+                if API_KEY:
+                    headers["X-API-Key"] = API_KEY
+                response = requests.get(f"{API_URL}/health", headers=headers, timeout=5)
                 if response.status_code == 200:
                     health_data = response.json()
                     st.success("✅ API is healthy")
@@ -129,7 +137,10 @@ def main():
                     
                     # Send request to FastAPI
                     files = {"file": ("image.jpg", img_bytes, "image/jpeg")}
-                    response = requests.post(PREDICT_ENDPOINT, files=files, timeout=30)
+                    headers = {}
+                    if API_KEY:
+                        headers["X-API-Key"] = API_KEY
+                    response = requests.post(PREDICT_ENDPOINT, files=files, headers=headers, timeout=30)
                     
                     if response.status_code == 200:
                         result = response.json()
