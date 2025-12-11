@@ -18,6 +18,10 @@ A full-stack computer vision application that predicts the number of days remain
                                                     └──────────────┘
 ```
 
+## Live APP
+https://freshnesspredictor.streamlit.app/
+
+
 ## 📁 Project Structure
 
 ```
